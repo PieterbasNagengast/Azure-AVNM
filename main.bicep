@@ -1,8 +1,5 @@
 targetScope = 'subscription'
 
-@description('Location for all resources.')
-param location string = deployment().location
-
 @description('Name of the Azure Virtual Network Manager.')
 param avnmName string = 'AVNM01'
 
@@ -18,11 +15,16 @@ param vnetCount int = 3
 @description('Name of the resource group to deploy resources into.')
 param rgName string = 'rg-avnm'
 
+param locations array = [
+  'swedencentral'
+  'germanywestcentral'
+]
+
 // Deploy resource group
 
 resource rg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: rgName
-  location: location
+  location: locations[0]
   tags: tags
 }
 
@@ -32,46 +34,41 @@ module avnm './modules/avnm.bicep' = {
   name: 'avnmDeployment'
   scope: rg
   params: {
-    location: location
+    location: locations[0]
     avnmName: avnmName
     avnmDescription: avnmDescription
     tags: tags
-    vnetCount: vnetCount
-    staticVvnets: vnets.outputs.staticVvnets
   }
 }
 
-// Deploy Policy Definition to dynamically add AVNM managed vnets to the network group
+// Deploy per region resources (AVNM Network Groups, Policy Definitions, Policy Assignments, VNets)
 
-module avnmNgPolicyDef './modules/avnmNgPolicyDef.bicep' = {
-  name: 'avnmNgPolicyDefDeployment'
-  scope: subscription()
-  params: {
-    networkGroupId: avnm.outputs.avnmNgId
+@batchSize(1)
+module perRegion './modules/perRegion.bicep' = [
+  for loc in locations: {
+    name: 'perRegion-${loc}'
+    scope: rg
+    params: {
+      location: loc
+      avnmName: avnmName
+      vnetCount: vnetCount
+    }
   }
-}
+]
 
-// Deploy Policy Assignment to assign the policy definition
+// Deploy AVNM Network Group for Hub VNets
 
-module avnmNgPolicyAssign './modules/avnmNgPolicyAssign.bicep' = {
-  name: 'avnmNgPolicyAssignDeployment'
+module avnmNgHubs 'modules/avnmNgHubs.bicep' = {
+  name: 'Hubs-NG'
   scope: rg
   params: {
-    policyAssignName: 'Add-AVNM-Managed-VNets-To-Network-Group-Assignment'
-    policyLocation: [
-      location
+    avnmName: avnmName
+    avnmNgName: 'NG-Hubs'
+    hubVnets: [
+      for i in range(0, length(locations)): {
+        id: perRegion[i].outputs.hubVnet.id
+        name: perRegion[i].outputs.hubVnet.name
+      }
     ]
-    policyDefId: avnmNgPolicyDef.outputs.policyDefinitionId
-  }
-}
-
-// Deploy bunch of virtual networks to be managed by AVNM
-
-module vnets './modules/vnets.bicep' = {
-  name: 'vnetsDeployment'
-  scope: rg
-  params: {
-    location: location
-    vnetCount: vnetCount
   }
 }

@@ -1,13 +1,13 @@
 param policyAssignName string
-param policyLocation array
-
+param policyLocation string
 param policyDefId string
+param avnmNgName string
 
 resource policyAssign 'Microsoft.Authorization/policyAssignments@2025-03-01' = {
   name: policyAssignName
   properties: {
-    displayName: 'Assign Policy to add AVNM Managed VNets to Network Group'
-    description: 'Policy Assignment to automatically add virtual networks tagged with avnmManaged:true to the specified AVNM network group.'
+    displayName: 'Add VNets to AVNMNetwork Group for ${avnmNgName} in ${policyLocation}'
+    description: 'Policy Assignment to automatically add virtual networks tagged with avnmManaged:true in ${policyLocation} to the AVNM network group: ${avnmNgName}'
     policyDefinitionId: policyDefId
     resourceSelectors: [
       {
@@ -15,7 +15,9 @@ resource policyAssign 'Microsoft.Authorization/policyAssignments@2025-03-01' = {
         selectors: [
           {
             kind: 'resourceLocation'
-            in: policyLocation
+            in: [
+              policyLocation
+            ]
           }
         ]
       }

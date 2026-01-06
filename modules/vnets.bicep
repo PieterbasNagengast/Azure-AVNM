@@ -18,7 +18,7 @@ resource hubVnet 'Microsoft.Network/virtualNetworks@2025-01-01' = {
 
 resource staticVvnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
   for i in range(0, vnetCount): {
-    name: 'StaticVNet${i}'
+    name: 'StaticVNet${i}-${location}'
     location: location
     tags: {
       avnmManaged: 'false'
@@ -35,7 +35,7 @@ resource staticVvnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
 
 resource dynamicVnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
   for i in range(0, vnetCount): {
-    name: 'DynamicVNet${i}'
+    name: 'DynamicVNet${i}-${location}'
     location: location
     tags: {
       avnmManaged: 'true'
@@ -51,6 +51,7 @@ resource dynamicVnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
 ]
 
 output hubVnetId string = hubVnet.id
+output hubVnetName string = hubVnet.name
 output staticVvnets array = [
   for i in range(0, vnetCount): {
     id: staticVvnets[i].id
