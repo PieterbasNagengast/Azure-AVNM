@@ -7,6 +7,7 @@ param vnetCount int
 @description('CIDR block for the virtual networks in this region.')
 param cidr string
 
+// Deploy hub virtual network
 resource hubVnet 'Microsoft.Network/virtualNetworks@2025-01-01' = {
   name: 'HubVnet-${location}'
   location: location
@@ -27,6 +28,7 @@ resource hubVnet 'Microsoft.Network/virtualNetworks@2025-01-01' = {
   }
 }
 
+// Deploy static virtual networks (static members of AVNM Network Group)
 resource staticVvnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
   for i in range(0, vnetCount): {
     name: 'StaticVNet${i}-${location}'
@@ -44,6 +46,7 @@ resource staticVvnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
   }
 ]
 
+// Deploy dynamic virtual networks (dynamic members of AVNM Network Group)
 resource dynamicVnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
   for i in range(0, vnetCount): {
     name: 'DynamicVNet${i}-${location}'
@@ -61,8 +64,11 @@ resource dynamicVnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
   }
 ]
 
-output hubVnetId string = hubVnet.id
-output hubVnetName string = hubVnet.name
+output hubVnet object = {
+  id: hubVnet.id
+  name: hubVnet.name
+}
+
 output staticVvnets array = [
   for i in range(0, vnetCount): {
     id: staticVvnets[i].id

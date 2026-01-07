@@ -61,13 +61,10 @@ module avnmConnectivity './avnmConnectivity.bicep' = {
   name: 'connectivity-${location}'
   params: {
     connectivityConfigName: 'ConnectivityConfig-${location}'
-    hubResourceId: vnets.outputs.hubVnetId
+    hubResourceId: vnets.outputs.hubVnet.id
     networkGroupId: avnmNg.outputs.avnmNgId
     avnmName: avnmName
   }
 }
 
-output hubVnet object = {
-  id: vnets.outputs.hubVnetId
-  name: vnets.outputs.hubVnetName
-}
+output hubVnet object = vnets.outputs.hubVnet

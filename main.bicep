@@ -15,7 +15,8 @@ param vnetCount int = 3
 @description('Name of the resource group to deploy resources into.')
 param rgName string = 'rg-avnm'
 
-param regions array = [
+@description('Array of objects representing regions and their CIDR blocks.')
+param regions _regions = [
   {
     location: 'swedencentral'
     cidr: '172.16.0.0/16'
@@ -26,8 +27,12 @@ param regions array = [
   }
 ]
 
-// Deploy resource group
+type _regions = {
+  location: string
+  cidr: string
+}[]
 
+// Deploy resource group
 resource rg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: rgName
   location: regions[0].location
@@ -35,7 +40,6 @@ resource rg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
 }
 
 // Deploy Azure Virtual Network Manager and Network Group
-
 module avnm './modules/avnm.bicep' = {
   name: 'avnmDeployment'
   scope: rg
@@ -48,7 +52,6 @@ module avnm './modules/avnm.bicep' = {
 }
 
 // Deploy per region resources (AVNM Network Groups, Policy Definitions, Policy Assignments, VNets)
-
 module perRegion './modules/perRegion.bicep' = [
   for (region, i) in regions: {
     name: 'perRegion-${region.location}'
@@ -63,7 +66,6 @@ module perRegion './modules/perRegion.bicep' = [
 ]
 
 // Deploy AVNM Network Group for Hub VNets
-
 module avnmNgHubs 'modules/avnmNg.bicep' = {
   name: 'Hubs-NG'
   scope: rg
@@ -71,17 +73,11 @@ module avnmNgHubs 'modules/avnmNg.bicep' = {
     avnmName: avnmName
     avnmNgName: 'NG-Hubs'
     avnmNgDescription: 'Network Group for Hub VNets'
-    Vnets: [
-      for i in range(0, length(regions)): {
-        id: perRegion[i].outputs.hubVnet.id
-        name: perRegion[i].outputs.hubVnet.name
-      }
-    ]
+    Vnets: [for i in range(0, length(regions)): perRegion[i].outputs.hubVnet]
   }
 }
 
 // Deploy AVNM Connectivity Configuration for Hub VNets
-
 module avnmConnectivity 'modules/avnmConnectivity.bicep' = {
   name: 'Connectivity-Hubs'
   scope: rg
