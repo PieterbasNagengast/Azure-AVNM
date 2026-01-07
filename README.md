@@ -16,39 +16,39 @@ Deployment entrypoint: `main.bicep` (subscription-scope).
 
 ```mermaid
 flowchart TB
-	subgraph SUB[Subscription Scope]
-		MAIN[main.bicep]
-	end
+  subgraph SUB["Subscription Scope"]
+    MAIN["main.bicep"]
+  end
 
-	subgraph RG[Resource Group: rgName (default: rg-avnm)]
-		AVNM[modules/avnm.bicep\nNetwork Manager (AVNM)]
-		PERREGION[modules/perRegion.bicep[]\n(one instance per region)]
-		NGHUBS[modules/avnmNg.bicep\nNetwork Group: NG-Hubs]
-		CONNHUBS[modules/avnmConnectivity.bicep\nConnectivity: Connectivity-Hubs (Mesh)]
-	end
+  subgraph RG["Resource Group: rgName (default: rg-avnm)"]
+    AVNM["modules/avnm.bicep\nNetwork Manager (AVNM)"]
+    PERREGION["modules/perRegion.bicep[]\n(one instance per region)"]
+    NGHUBS["modules/avnmNg.bicep\nNetwork Group: NG-Hubs"]
+    CONNHUBS["modules/avnmConnectivity.bicep\nConnectivity: Connectivity-Hubs (Mesh)"]
+  end
 
-	MAIN -->|creates RG| RG
-	MAIN -->|deploys| AVNM
-	MAIN -->|for each region| PERREGION
-	MAIN -->|collect hub VNet outputs| NGHUBS
-	NGHUBS -->|networkGroupId| CONNHUBS
+  MAIN -->|creates RG| RG
+  MAIN -->|deploys| AVNM
+  MAIN -->|for each region| PERREGION
+  MAIN -->|collect hub VNet outputs| NGHUBS
+  NGHUBS -->|networkGroupId| CONNHUBS
 
-	subgraph REGION[Per Region (location)]
-		VNETS[modules/vnets.bicep\nHubVnet + StaticVNet* + DynamicVNet*]
-		NG[modules/avnmNg.bicep\nNetwork Group: NG-<location>]
-		POLDEF[modules/avnmNgPolicyDef.bicep\nPolicy Definition (subscription scope)]
-		POLASSIGN[modules/avnmNgPolicyAssign.bicep\nPolicy Assignment (RG scope)]
-		CONN[modules/avnmConnectivity.bicep\nConnectivity: ConnectivityConfig-<location> (HubAndSpoke)]
-	end
+  subgraph REGION["Per Region (location)"]
+    VNETS["modules/vnets.bicep\nHubVnet + StaticVNet* + DynamicVNet* "]
+	NG["modules/avnmNg.bicep\nNetwork Group: NG-{location}"]
+    POLDEF["modules/avnmNgPolicyDef.bicep\nPolicy Definition (subscription scope)"]
+    POLASSIGN["modules/avnmNgPolicyAssign.bicep\nPolicy Assignment (RG scope)"]
+	CONN["modules/avnmConnectivity.bicep\nConnectivity: ConnectivityConfig-{location} (HubAndSpoke)"]
+  end
 
-	PERREGION --> VNETS
-	PERREGION --> NG
-	PERREGION --> POLDEF
-	PERREGION --> POLASSIGN
-	PERREGION --> CONN
-	VNETS -->|hubVnet.id| CONN
-	NG -->|networkGroupId| CONN
-	POLDEF -->|policyDefId| POLASSIGN
+  PERREGION --> VNETS
+  PERREGION --> NG
+  PERREGION --> POLDEF
+  PERREGION --> POLASSIGN
+  PERREGION --> CONN
+  VNETS -->|hubVnet.id| CONN
+  NG -->|networkGroupId| CONN
+  POLDEF -->|policyDefId| POLASSIGN
 ```
 
 ## Repository structure
