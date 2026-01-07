@@ -141,22 +141,6 @@ This repo creates connectivity configurations under:
 
 `Microsoft.Network/networkManagers/connectivityConfigurations`
 
-### Hub payload shape (Hub-and-Spoke)
-
-When topology is `HubAndSpoke`, hubs are expressed as:
-
-```json
-{
-	"resourceId": "/subscriptions/.../resourceGroups/.../providers/Microsoft.Network/virtualNetworks/<hubVnet>",
-	"resourceType": "Microsoft.Network/virtualNetworks"
-}
-```
-
-### API version note
-
-`modules/avnmConnectivity.bicep` uses a stable API version (`2022-11-01`) for `connectivityConfigurations`.
-Several boolean-like fields in this resource are **strings** (`"True"` / `"False"`) per the ARM schema.
-
 ## Validate
 
 ```powershell
@@ -169,27 +153,6 @@ Get-AzNetworkManager -ResourceGroupName rg-avnm | Select-Object Name, Location, 
 # Connectivity configurations
 Get-AzNetworkManagerConnectivityConfiguration -ResourceGroupName rg-avnm -NetworkManagerName AVNM01
 ```
-
-## Troubleshooting
-
-### “Deployment canceled” / nested deployment failure
-
-If a per-region deployment fails and a nested deployment shows `Canceled`, list the operations to find the first failure:
-
-```powershell
-$rg = 'rg-avnm'
-$dep = 'perRegion-swedencentral'
-
-Get-AzResourceGroupDeploymentOperation -ResourceGroupName $rg -DeploymentName $dep |
-	Select-Object OperationId, ProvisioningState, StatusCode, TargetResource, StatusMessage
-```
-
-### Internal errors when creating connectivity configuration
-
-If ARM returns internal mapping/deserialization errors, first verify:
-
-- `hubs[].resourceType` is exactly `Microsoft.Network/virtualNetworks`
-- you’re using a known-stable API version for `connectivityConfigurations`
 
 ## Local build
 
