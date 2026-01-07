@@ -16,10 +16,9 @@ module avnmNg 'avnmNg.bicep' = {
   name: 'avnmNg-${location}'
   params: {
     avnmName: avnmName
+    avnmNgDescription: 'Network Group for location ${location}'
     avnmNgName: 'NG-${location}'
-    vnetCount: vnetCount
-    staticVvnets: vnets.outputs.staticVvnets
-    location: location
+    Vnets: vnets.outputs.staticVvnets
   }
 }
 

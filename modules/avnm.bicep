@@ -1,7 +1,5 @@
-targetScope = 'resourceGroup'
-
 @description('Location for all resources.')
-param location string = resourceGroup().location
+param location string
 
 @description('Name of the Azure Virtual Network Manager.')
 param avnmName string

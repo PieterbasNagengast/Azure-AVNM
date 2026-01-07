@@ -4,29 +4,42 @@ param avnmName string
 @description('Name of the AVNM Network Group.')
 param avnmNgName string
 
-@description('Number of virtual networks to create for each type.')
-param vnetCount int
+@description('Array of objects respresenting VNET\'s Name and resource ID')
+param Vnets _vnets
 
-@description('Array of static virtual networks to be added to the network group.')
-param staticVvnets array
+@description('Description of the AVNM Network Group.')
+param avnmNgDescription string = 'AVNM Network Group'
 
-@description('Location for all resources.')
-param location string
+type _vnets = {
+  name: string
+  id: string
+}[]
+
+@allowed([
+  'VirtualNetwork'
+  'Subnet'
+])
+param memberType string = 'VirtualNetwork'
+
+resource avnm 'Microsoft.Network/networkManagers@2025-01-01' existing = {
+  name: avnmName
+}
 
 resource avnmNg 'Microsoft.Network/networkManagers/networkGroups@2025-01-01' = {
-  name: '${avnmName}/${avnmNgName}'
+  name: avnmNgName
+  parent: avnm
   properties: {
-    description: 'Spoke Network Group for location ${location}'
-    memberType: 'VirtualNetwork'
+    description: avnmNgDescription
+    memberType: memberType
   }
 }
 
 resource avnmNgStatic 'Microsoft.Network/networkManagers/networkGroups/staticMembers@2025-01-01' = [
-  for i in range(0, vnetCount): {
-    name: staticVvnets[i].name
+  for Vnet in Vnets: if (!empty(Vnets)) {
+    name: Vnet.name
     parent: avnmNg
     properties: {
-      resourceId: staticVvnets[i].id
+      resourceId: Vnet.id
     }
   }
 ]

@@ -64,13 +64,14 @@ module perRegion './modules/perRegion.bicep' = [
 
 // Deploy AVNM Network Group for Hub VNets
 
-module avnmNgHubs 'modules/avnmNgHubs.bicep' = {
+module avnmNgHubs 'modules/avnmNg.bicep' = {
   name: 'Hubs-NG'
   scope: rg
   params: {
     avnmName: avnmName
     avnmNgName: 'NG-Hubs'
-    hubVnets: [
+    avnmNgDescription: 'Network Group for Hub VNets'
+    Vnets: [
       for i in range(0, length(regions)): {
         id: perRegion[i].outputs.hubVnet.id
         name: perRegion[i].outputs.hubVnet.name
