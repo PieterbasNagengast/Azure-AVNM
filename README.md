@@ -1,10 +1,13 @@
 
 # Azure-AVNM (Bicep)
 
+This is a **demo / example repository** intended to kick-start Azure Virtual Network Manager (AVNM) **PoCs and demo projects**. It provides a repeatable baseline deployment you can adapt to your own topology and governance needs.
+
 This repository deploys an **Azure Virtual Network Manager (AVNM)** lab environment using **Bicep**, including:
 
 - An AVNM (Network Manager)
 - Per-region hub + spoke VNets
+- Multiple VNets per region to demonstrate **static vs dynamic** AVNM network group membership
 - Per-region AVNM network groups
 - Per-region AVNM connectivity configurations (Hub-and-Spoke)
 - Azure Policy definition + assignment to demonstrate **dynamic** network group membership
@@ -126,6 +129,8 @@ For each region in `regions`:
 - Hub VNet: `HubVnet-<location>`
 - Static VNets: `StaticVNet<i>-<location>` (tag: `avnmManaged=false`)
 - Dynamic VNets: `DynamicVNet<i>-<location>` (tag: `avnmManaged=true`)
+
+The static/dynamic split is intentional: it demonstrates the difference between explicitly provided (static) network group members and policy-driven (dynamic) membership patterns.
 - Network Group: `NG-<location>`
 - Connectivity configuration: `ConnectivityConfig-<location>` (Hub-and-Spoke)
 - Policy definition (subscription scope) + policy assignment (to demonstrate dynamic membership)
