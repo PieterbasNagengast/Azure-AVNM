@@ -9,7 +9,7 @@ param avnmDescription string = 'Azure Virtual Network Manager'
 @description('Tags to be applied to all resources.')
 param tags object = {}
 
-@description('Number of virtual networks to create for each type.')
+@description('Number of virtual networks to create for each type.(static and dynamic members of AVNM Network Group)')
 param vnetCount int = 3
 
 @description('Name of the resource group to deploy resources into.')
