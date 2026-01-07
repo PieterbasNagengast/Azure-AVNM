@@ -37,6 +37,27 @@ param deleteExistingPeering string = 'False'
 ])
 param connectivitytopology string = 'HubAndSpoke'
 
+@description('Peering enforcement setting for the AVNM connectivity configuration.')
+@allowed([
+  'Enforced'
+  'Unenforced'
+])
+param peeringEnforcement string = 'Enforced'
+
+@description('Address overlap setting for private endpoints in the connected group.')
+@allowed([
+  'Allowed'
+  'Disallowed'
+])
+param connectedGroupAddressOverlap string = 'Disallowed'
+
+@description('Scale setting for private endpoints in the connected group.')
+@allowed([
+  'Standard'
+  'HighScale'
+])
+param connectedGroupPrivateEndpointsScale string = 'Standard'
+
 resource avnm 'Microsoft.Network/networkManagers@2025-01-01' existing = {
   name: avnmName
 }
@@ -53,6 +74,11 @@ resource avnmConnectivity 'Microsoft.Network/networkManagers/connectivityConfigu
         networkGroupId: networkGroupId
       }
     ]
+    connectivityCapabilities: {
+      connectedGroupPrivateEndpointsScale: connectedGroupPrivateEndpointsScale
+      connectedGroupAddressOverlap: connectedGroupAddressOverlap
+      peeringEnforcement: connectivitytopology == 'Mesh' ? 'Unenforced' : peeringEnforcement
+    }
     isGlobal: connectivitytopology == 'Mesh' ? 'True' : 'False'
     connectivityTopology: connectivitytopology
     deleteExistingPeering: deleteExistingPeering
