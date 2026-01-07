@@ -16,6 +16,14 @@ resource hubVnet 'Microsoft.Network/virtualNetworks@2025-01-01' = {
         cidrSubnet(cidr, 24, 0)
       ]
     }
+    subnets: [
+      {
+        name: 'default'
+        properties: {
+          addressPrefix: cidrSubnet(cidrSubnet(cidr, 24, 0), 26, 0)
+        }
+      }
+    ]
   }
 }
 
