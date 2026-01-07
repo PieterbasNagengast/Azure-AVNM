@@ -15,16 +15,22 @@ param vnetCount int = 3
 @description('Name of the resource group to deploy resources into.')
 param rgName string = 'rg-avnm'
 
-param locations array = [
-  'swedencentral'
-  'germanywestcentral'
+param regions array = [
+  {
+    location: 'swedencentral'
+    cidr: '172.16.0.0/16'
+  }
+  {
+    location: 'germanywestcentral'
+    cidr: '172.32.0.0/16'
+  }
 ]
 
 // Deploy resource group
 
 resource rg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: rgName
-  location: locations[0]
+  location: regions[0].location
   tags: tags
 }
 
@@ -34,7 +40,7 @@ module avnm './modules/avnm.bicep' = {
   name: 'avnmDeployment'
   scope: rg
   params: {
-    location: locations[0]
+    location: regions[0].location
     avnmName: avnmName
     avnmDescription: avnmDescription
     tags: tags
@@ -43,15 +49,15 @@ module avnm './modules/avnm.bicep' = {
 
 // Deploy per region resources (AVNM Network Groups, Policy Definitions, Policy Assignments, VNets)
 
-@batchSize(1)
 module perRegion './modules/perRegion.bicep' = [
-  for loc in locations: {
-    name: 'perRegion-${loc}'
+  for (region, i) in regions: {
+    name: 'perRegion-${region.location}'
     scope: rg
     params: {
-      location: loc
+      location: region.location
       avnmName: avnmName
       vnetCount: vnetCount
+      cidr: region.cidr
     }
   }
 ]
@@ -65,10 +71,25 @@ module avnmNgHubs 'modules/avnmNgHubs.bicep' = {
     avnmName: avnmName
     avnmNgName: 'NG-Hubs'
     hubVnets: [
-      for i in range(0, length(locations)): {
+      for i in range(0, length(regions)): {
         id: perRegion[i].outputs.hubVnet.id
         name: perRegion[i].outputs.hubVnet.name
       }
     ]
+  }
+}
+
+// Deploy AVNM Connectivity Configuration for Hub VNets
+
+module avnmConnectivity 'modules/avnmConnectivity.bicep' = {
+  name: 'Connectivity-Hubs'
+  scope: rg
+  params: {
+    avnmName: avnmName
+    connectivityConfigName: 'Connectivity-Hubs'
+    networkGroupId: avnmNgHubs.outputs.avnmNgId
+    groupConnectivity: 'None'
+    connectivitytopology: 'Mesh'
+    deleteExistingPeering: 'False'
   }
 }

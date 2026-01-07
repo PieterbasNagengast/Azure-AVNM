@@ -7,6 +7,9 @@ param avnmName string
 @description('Number of virtual networks to create for each type.')
 param vnetCount int = 3
 
+@description('CIDR block for the virtual networks in this region.')
+param cidr string
+
 // Deploy Azure Virtual Network ManagerNetwork Group
 
 module avnmNg 'avnmNg.bicep' = {
@@ -49,6 +52,7 @@ module vnets './vnets.bicep' = {
   params: {
     location: location
     vnetCount: vnetCount
+    cidr: cidr
   }
 }
 

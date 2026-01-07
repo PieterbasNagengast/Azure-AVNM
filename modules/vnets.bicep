@@ -4,13 +4,16 @@ param location string
 @description('Number of virtual networks to create for each type.')
 param vnetCount int
 
+@description('CIDR block for the virtual networks in this region.')
+param cidr string
+
 resource hubVnet 'Microsoft.Network/virtualNetworks@2025-01-01' = {
   name: 'HubVnet-${location}'
   location: location
   properties: {
     addressSpace: {
       addressPrefixes: [
-        '10.255.0.0/24'
+        cidrSubnet(cidr, 24, 0)
       ]
     }
   }
@@ -26,7 +29,7 @@ resource staticVvnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
     properties: {
       addressSpace: {
         addressPrefixes: [
-          '10.0.${i}.0/24'
+          cidrSubnet(cidr, 24, i + 1)
         ]
       }
     }
@@ -43,7 +46,7 @@ resource dynamicVnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
     properties: {
       addressSpace: {
         addressPrefixes: [
-          '10.1.${i}.0/24'
+          cidrSubnet(cidr, 24, i + 1 + vnetCount)
         ]
       }
     }

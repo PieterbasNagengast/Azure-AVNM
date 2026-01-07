@@ -24,3 +24,5 @@ resource avnmNgStatic 'Microsoft.Network/networkManagers/networkGroups/staticMem
     }
   }
 ]
+
+output avnmNgId string = avnmNg.id

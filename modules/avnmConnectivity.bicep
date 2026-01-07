@@ -9,7 +9,7 @@ param connectivityConfigName string
 param useHubGateway string = 'False'
 
 @description('Resource ID of the hub virtual network to be used in the connectivity configuration.')
-param hubResourceId string
+param hubResourceId string = ''
 
 @description('Name of the Azure Virtual Network Manager Connectivity Configuration.')
 param networkGroupId string
@@ -45,7 +45,7 @@ resource avnmConnectivity 'Microsoft.Network/networkManagers/connectivityConfigu
   name: connectivityConfigName
   parent: avnm
   properties: {
-    description: 'Connectivity configuration for AVNM Network Group ${networkGroupId}'
+    description: 'Connectivity configuration for AVNM Network Group'
     appliesToGroups: [
       {
         groupConnectivity: groupConnectivity
@@ -53,6 +53,7 @@ resource avnmConnectivity 'Microsoft.Network/networkManagers/connectivityConfigu
         networkGroupId: networkGroupId
       }
     ]
+    isGlobal: connectivitytopology == 'Mesh' ? 'True' : 'False'
     connectivityTopology: connectivitytopology
     deleteExistingPeering: deleteExistingPeering
     hubs: connectivitytopology == 'HubAndSpoke'
