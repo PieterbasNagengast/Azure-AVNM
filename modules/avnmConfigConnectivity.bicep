@@ -11,7 +11,7 @@ param useHubGateway string = 'False'
 @description('Resource ID of the hub virtual network to be used in the connectivity configuration.')
 param hubResourceId string = ''
 
-@description('Name of the Azure Virtual Network Manager Connectivity Configuration.')
+@description('ResourceID of the Network group to be associated with the connectivity configuration.')
 param networkGroupId string
 
 @description('Name of the Azure Virtual Network Manager.')
@@ -58,10 +58,12 @@ param connectedGroupAddressOverlap string = 'Disallowed'
 ])
 param connectedGroupPrivateEndpointsScale string = 'Standard'
 
+// avnm existing resource
 resource avnm 'Microsoft.Network/networkManagers@2025-01-01' existing = {
   name: avnmName
 }
 
+// AVNM Connectivity Configuration resource
 resource avnmConnectivity 'Microsoft.Network/networkManagers/connectivityConfigurations@2025-01-01' = {
   name: connectivityConfigName
   parent: avnm

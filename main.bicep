@@ -78,15 +78,27 @@ module avnmNgHubs 'modules/avnmNg.bicep' = {
 }
 
 // Deploy AVNM Connectivity Configuration for Hub VNets
-module avnmConnectivity 'modules/avnmConnectivity.bicep' = {
-  name: 'Connectivity-Hubs'
+module avnmConnectivity 'modules/avnmConfigConnectivity.bicep' = {
+  name: 'ConnectivityConfig-Hubs'
   scope: rg
   params: {
     avnmName: avnmName
-    connectivityConfigName: 'Connectivity-Hubs'
+    connectivityConfigName: 'ConnectivityConfig-Hubs'
     networkGroupId: avnmNgHubs.outputs.avnmNgId
     groupConnectivity: 'None'
     connectivitytopology: 'Mesh'
     deleteExistingPeering: 'False'
+  }
+}
+
+module avnmSecurity 'modules/avnmConfigSecurity.bicep' = {
+  name: 'Security-Config'
+  scope: rg
+  params: {
+    avnmName: avnmName
+    securityAdminConfigName: 'SecurityAdminConfig'
+    networkGroupId: [for i in range(0, length(regions)): { networkGroupId: perRegion[i].outputs.networkGroupId }]
+    networkGroupAddressSpaceAggregationOption: 'None'
+    applyOnNetworkIntentPolicyBasedServices: 'None'
   }
 }

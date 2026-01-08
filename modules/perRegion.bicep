@@ -11,7 +11,6 @@ param vnetCount int = 3
 param cidr string
 
 // Deploy Azure Virtual Network ManagerNetwork Group
-
 module avnmNg 'avnmNg.bicep' = {
   name: 'avnmNg-${location}'
   params: {
@@ -23,7 +22,6 @@ module avnmNg 'avnmNg.bicep' = {
 }
 
 // Deploy Policy Definition to dynamically add AVNM managed vnets to the network group
-
 module avnmNgPolicyDef './avnmNgPolicyDef.bicep' = {
   name: 'avnmNgPolicyDef-${location}'
   scope: subscription()
@@ -33,7 +31,6 @@ module avnmNgPolicyDef './avnmNgPolicyDef.bicep' = {
 }
 
 // Deploy Policy Assignment to assign the policy definition
-
 module avnmNgPolicyAssign './avnmNgPolicyAssign.bicep' = {
   name: 'avnmNgPolicyAssign-${location}'
   params: {
@@ -45,7 +42,6 @@ module avnmNgPolicyAssign './avnmNgPolicyAssign.bicep' = {
 }
 
 // Deploy bunch of virtual networks to be managed by AVNM
-
 module vnets './vnets.bicep' = {
   name: 'vnets-${location}'
   params: {
@@ -56,8 +52,7 @@ module vnets './vnets.bicep' = {
 }
 
 // Deploy AVNM Connectivity Configuration to connect hub vnet to the network group
-
-module avnmConnectivity './avnmConnectivity.bicep' = {
+module avnmConnectivity './avnmConfigConnectivity.bicep' = {
   name: 'connectivity-${location}'
   params: {
     connectivityConfigName: 'ConnectivityConfig-${location}'
@@ -67,4 +62,16 @@ module avnmConnectivity './avnmConnectivity.bicep' = {
   }
 }
 
+// Deploy AVNM Routing Configuration to route traffic from the network group to the hub vnet
+module avnmRouting './avnmConfigRouting.bicep' = {
+  name: 'routing-${location}'
+  params: {
+    routingConfigName: 'RoutingConfig-${location}'
+    networkGroupId: avnmNg.outputs.avnmNgId
+    avnmName: avnmName
+    nextHopAddress: vnets.outputs.AzFwIpAddress
+  }
+}
+
 output hubVnet object = vnets.outputs.hubVnet
+output networkGroupId string = avnmNg.outputs.avnmNgId
