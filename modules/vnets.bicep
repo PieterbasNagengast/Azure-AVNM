@@ -7,21 +7,42 @@ param vnetCount int
 @description('CIDR block for the virtual networks in this region.')
 param cidr string
 
+@description('IPAM Pool IDs to be used for address space allocation. for static vnets and Hub vnet')
+param ipamPool1Id string
+
+@description('IPAM Pool IDs to be used for address space allocation. for dynamic vnets')
+param ipamPool2Id string
+
+@description('Tags to be applied to all resources.')
+param tags object = {}
+
 // Deploy hub virtual network
 resource hubVnet 'Microsoft.Network/virtualNetworks@2025-01-01' = {
   name: 'HubVnet-${location}'
   location: location
   properties: {
     addressSpace: {
-      addressPrefixes: [
-        cidrSubnet(cidr, 24, 0)
+      ipamPoolPrefixAllocations: [
+        {
+          numberOfIpAddresses: '256'
+          pool: {
+            id: ipamPool1Id
+          }
+        }
       ]
     }
     subnets: [
       {
         name: 'default'
         properties: {
-          addressPrefix: cidrSubnet(cidrSubnet(cidr, 24, 0), 26, 0)
+          ipamPoolPrefixAllocations: [
+            {
+              numberOfIpAddresses: '64'
+              pool: {
+                id: ipamPool1Id
+              }
+            }
+          ]
           networkSecurityGroup: {
             id: nsgHubVnet.id
           }
@@ -33,11 +54,19 @@ resource hubVnet 'Microsoft.Network/virtualNetworks@2025-01-01' = {
       {
         name: 'AzureFirewallSubnet'
         properties: {
-          addressPrefix: cidrSubnet(cidrSubnet(cidr, 24, 0), 26, 1)
+          ipamPoolPrefixAllocations: [
+            {
+              numberOfIpAddresses: '64'
+              pool: {
+                id: ipamPool1Id
+              }
+            }
+          ]
         }
       }
     ]
   }
+  tags: tags
 }
 
 // Deploy NSG for hub virtual network
@@ -45,6 +74,7 @@ resource nsgHubVnet 'Microsoft.Network/networkSecurityGroups@2025-01-01' = {
   name: 'nsg-HubVnet-${location}'
   location: location
   properties: {}
+  tags: tags
 }
 
 // Deploy UDR for hub virtual network
@@ -52,6 +82,7 @@ resource udrHubVnet 'Microsoft.Network/routeTables@2025-01-01' = {
   name: 'udr-HubVnet-${location}'
   location: location
   properties: {}
+  tags: tags
 }
 
 // Deploy static virtual networks (static members of AVNM Network Group)
@@ -59,20 +90,32 @@ resource staticVvnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
   for i in range(0, vnetCount): {
     name: 'StaticVNet${i}-${location}'
     location: location
-    tags: {
+    tags: union(tags, {
       avnmManaged: 'false'
-    }
+    })
     properties: {
       addressSpace: {
-        addressPrefixes: [
-          cidrSubnet(cidr, 24, i + 1)
+        ipamPoolPrefixAllocations: [
+          {
+            numberOfIpAddresses: '256'
+            pool: {
+              id: ipamPool1Id
+            }
+          }
         ]
       }
       subnets: [
         {
           name: 'default'
           properties: {
-            addressPrefix: cidrSubnet(cidrSubnet(cidr, 24, i + 1), 26, 0)
+            ipamPoolPrefixAllocations: [
+              {
+                numberOfIpAddresses: '64'
+                pool: {
+                  id: ipamPool1Id
+                }
+              }
+            ]
             networkSecurityGroup: {
               id: nsgStaticVnets[i].id
             }
@@ -92,6 +135,7 @@ resource nsgStaticVnets 'Microsoft.Network/networkSecurityGroups@2025-01-01' = [
     name: 'nsg-StaticVNet${i}-${location}'
     location: location
     properties: {}
+    tags: tags
   }
 ]
 
@@ -101,6 +145,7 @@ resource udrsStaticVnets 'Microsoft.Network/routeTables@2025-01-01' = [
     name: 'udr-StaticVNet${i}-${location}'
     location: location
     properties: {}
+    tags: tags
   }
 ]
 
@@ -109,20 +154,32 @@ resource dynamicVnets 'Microsoft.Network/virtualNetworks@2025-01-01' = [
   for i in range(0, vnetCount): {
     name: 'DynamicVNet${i}-${location}'
     location: location
-    tags: {
+    tags: union(tags, {
       avnmManaged: 'true'
-    }
+    })
     properties: {
       addressSpace: {
-        addressPrefixes: [
-          cidrSubnet(cidr, 24, i + 1 + vnetCount)
+        ipamPoolPrefixAllocations: [
+          {
+            numberOfIpAddresses: '256'
+            pool: {
+              id: ipamPool2Id
+            }
+          }
         ]
       }
       subnets: [
         {
           name: 'default'
           properties: {
-            addressPrefix: cidrSubnet(cidrSubnet(cidr, 24, i + 1 + vnetCount), 26, 0)
+            ipamPoolPrefixAllocations: [
+              {
+                numberOfIpAddresses: '64'
+                pool: {
+                  id: ipamPool2Id
+                }
+              }
+            ]
             networkSecurityGroup: {
               id: nsgDynamicVnets[i].id
             }
@@ -142,6 +199,7 @@ resource nsgDynamicVnets 'Microsoft.Network/networkSecurityGroups@2025-01-01' = 
     name: 'nsg-DynamicVNet${i}-${location}'
     location: location
     properties: {}
+    tags: tags
   }
 ]
 
@@ -151,6 +209,7 @@ resource udrsDynamicVnets 'Microsoft.Network/routeTables@2025-01-01' = [
     name: 'udr-DynamicVNet${i}-${location}'
     location: location
     properties: {}
+    tags: tags
   }
 ]
 

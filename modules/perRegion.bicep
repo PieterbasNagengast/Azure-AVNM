@@ -10,6 +10,9 @@ param vnetCount int = 3
 @description('CIDR block for the virtual networks in this region.')
 param cidr string
 
+@description('Tags to be applied to all resources.')
+param tags object = {}
+
 // Deploy Azure Virtual Network ManagerNetwork Group
 module avnmNg 'avnmNg.bicep' = {
   name: 'avnmNg-${location}'
@@ -48,6 +51,8 @@ module vnets './vnets.bicep' = {
     location: location
     vnetCount: vnetCount
     cidr: cidr
+    ipamPool1Id: ipam.outputs.ipamPoolChild1Id
+    ipamPool2Id: ipam.outputs.ipamPoolChild2Id
   }
 }
 
@@ -70,6 +75,16 @@ module avnmRouting './avnmConfigRouting.bicep' = {
     networkGroupId: avnmNg.outputs.avnmNgId
     avnmName: avnmName
     nextHopAddress: vnets.outputs.AzFwIpAddress
+  }
+}
+
+module ipam 'avnmIPAM.bicep' = {
+  name: 'ipam-${location}'
+  params: {
+    location: location
+    addressPrefixes: cidr
+    avnmName: avnmName
+    tags: tags
   }
 }
 

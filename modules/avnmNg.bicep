@@ -21,10 +21,12 @@ type _vnets = {
 ])
 param memberType string = 'VirtualNetwork'
 
+// Get existing AVNM resource
 resource avnm 'Microsoft.Network/networkManagers@2025-01-01' existing = {
   name: avnmName
 }
 
+// Deploy AVNM Network Group
 resource avnmNg 'Microsoft.Network/networkManagers/networkGroups@2025-01-01' = {
   name: avnmNgName
   parent: avnm
@@ -34,6 +36,7 @@ resource avnmNg 'Microsoft.Network/networkManagers/networkGroups@2025-01-01' = {
   }
 }
 
+// Add static members (VNets) to the AVNM Network Group
 resource avnmNgStatic 'Microsoft.Network/networkManagers/networkGroups/staticMembers@2025-01-01' = [
   for Vnet in Vnets: if (!empty(Vnets)) {
     name: Vnet.name

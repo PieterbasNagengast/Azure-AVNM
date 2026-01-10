@@ -72,6 +72,7 @@ resource avnm 'Microsoft.Network/networkManagers@2025-01-01' existing = {
   name: avnmName
 }
 
+// Deploy AVNM Security Admin Configuration
 resource avnmSecurityAdminConfig 'Microsoft.Network/networkManagers/securityAdminConfigurations@2025-01-01' = {
   name: securityAdminConfigName
   parent: avnm
@@ -84,6 +85,7 @@ resource avnmSecurityAdminConfig 'Microsoft.Network/networkManagers/securityAdmi
   }
 }
 
+// Deploy AVNM Security Admin Rule Collection to deny unencrypted traffic
 resource avnmSecurityAdminRuleCollections 'Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections@2025-01-01' = {
   name: 'DenyUnencryptedTraffic'
   parent: avnmSecurityAdminConfig
@@ -93,6 +95,7 @@ resource avnmSecurityAdminRuleCollections 'Microsoft.Network/networkManagers/sec
   }
 }
 
+// Deploy AVNM Security Admin Rules to deny unencrypted traffic
 resource avnmSecurityAdminRules 'Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections/rules@2024-10-01' = [
   for (rule, i) in unencryptedTraffic: {
     name: rule.name

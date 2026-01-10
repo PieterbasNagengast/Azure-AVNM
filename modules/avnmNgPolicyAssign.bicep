@@ -3,6 +3,7 @@ param policyLocation string
 param policyDefId string
 param avnmNgName string
 
+// Create Policy Assignment to assign the policy definition to add VNets to the AVNM Network Group
 resource policyAssign 'Microsoft.Authorization/policyAssignments@2025-03-01' = {
   name: policyAssignName
   properties: {
