@@ -33,10 +33,18 @@ resource policyDef 'Microsoft.Authorization/policyDefinitions@2025-03-01' = {
             equals: 'Microsoft.Network/virtualNetworks'
           }
           {
-            count: {
-              field: 'Microsoft.Network/virtualNetworks/addressSpace.ipamPoolPrefixAllocations[*].pool.id'
-            }
-            equals: 0
+            anyOf: [
+              {
+                field: 'Microsoft.Network/virtualNetworks/addressSpace.ipamPoolPrefixAllocations'
+                exists: 'false'
+              }
+              {
+                count: {
+                  field: 'Microsoft.Network/virtualNetworks/addressSpace.ipamPoolPrefixAllocations[*]'
+                }
+                equals: 0
+              }
+            ]
           }
         ]
       }
