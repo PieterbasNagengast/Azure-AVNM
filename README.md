@@ -119,10 +119,8 @@ flowchart TB
 	NGREG["Network Group\nNG-<location>"]
 	NGHUBS["Network Group\nNG-Hubs"]
 
-	HUBVNET["Hub VNet\nHubVnet-<location>"]
-	SPOKEVNETS["Spoke VNets\nStatic + Dynamic"]
-
-	POLICY["Azure Policy\n(addToNetworkGroup)"]
+	VNETMEM["Member type\nVirtual networks"]
+	SUBNETMEM["Member type\nSubnets"]
 
 	CONNREG["Connectivity Config\nHub-and-spoke"]
 	CONNHUBS["Connectivity Config\nHubs mesh"]
@@ -130,6 +128,7 @@ flowchart TB
 	SEC["Security Admin Config\n(rules applied to group)"]
 
 	IPAM["IPAM Pools\n(root + child)"]
+	ALLOC["Address allocations\n(prefixes for VNet/Subnet)"]
 
 	%% Relationships (conceptual)
 	AVNM --> NGREG
@@ -141,20 +140,20 @@ flowchart TB
 	AVNM --> IPAM
 
 	%% Group membership
-	NGREG -->|members| HUBVNET
-	NGREG -->|members| SPOKEVNETS
-	POLICY -->|adds tagged VNets| NGREG
+	NGREG -->|can contain| VNETMEM
+	NGREG -->|can contain| SUBNETMEM
+	NGHUBS -->|can contain| VNETMEM
 
 	%% Config targets
 	CONNREG -->|targets| NGREG
-	CONNREG -->|uses as hub| HUBVNET
 	ROUTE -->|targets| NGREG
 	SEC -->|targets| NGREG
 	CONNHUBS -->|targets| NGHUBS
 
 	%% IP allocation
-	IPAM -->|allocates prefixes| HUBVNET
-	IPAM -->|allocates prefixes| SPOKEVNETS
+	IPAM -->|allocates prefixes| ALLOC
+	ALLOC -->|applied to| VNETMEM
+	ALLOC -->|applied to| SUBNETMEM
 
 	%% higher-contrast color theme
 	classDef manager fill:#D1FAE5,stroke:#065F46,stroke-width:2px,color:#111827;
@@ -162,14 +161,12 @@ flowchart TB
 	classDef config fill:#EDE9FE,stroke:#5B21B6,stroke-width:2px,color:#111827;
 	classDef network fill:#FFEDD5,stroke:#9A3412,stroke-width:2px,color:#111827;
 	classDef ipam fill:#CCFBF1,stroke:#115E59,stroke-width:2px,color:#111827;
-	classDef policy fill:#FFE4E6,stroke:#9F1239,stroke-width:2px,color:#111827;
 
 	class AVNM manager;
 	class NGREG,NGHUBS group;
 	class CONNREG,CONNHUBS,ROUTE,SEC config;
-	class HUBVNET,SPOKEVNETS network;
+	class VNETMEM,SUBNETMEM,ALLOC network;
 	class IPAM ipam;
-	class POLICY policy;
 ```
 
 ## Repository structure
