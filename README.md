@@ -110,63 +110,43 @@ If you’re new to IPAM, the key learning outcome is:
 
 - The VNet/subnet doesn’t hardcode CIDRs; it asks an IPAM pool for prefixes.
 
-## Architecture
+## AVNM component overview
 
 ```mermaid
 flowchart TB
 	AVNM["AVNM\n(Network Manager)"]
 
-	NGREG["Network Group\nNG-<location>"]
-	NGHUBS["Network Group\nNG-Hubs"]
+	CONN["Connectivity Config"]
+	ROUTE["Routing Config"]
+	SEC["Security Admin Config"]
+	NG["Network Group"]
 
-	VNETMEM["Member type\nVirtual networks"]
-	SUBNETMEM["Member type\nSubnets"]
+	IPAMROOT["IPAM Root Pool"]
+	IPAMCH1["IPAM Child Pool 1"]
+	IPAMCH2["IPAM Child Pool 2"]
 
-	CONNREG["Connectivity Config\nHub-and-spoke"]
-	CONNHUBS["Connectivity Config\nHubs mesh"]
-	ROUTE["Routing Config\n(rules applied to group)"]
-	SEC["Security Admin Config\n(rules applied to group)"]
-
-	IPAM["IPAM Pools\n(root + child)"]
-	ALLOC["Address allocations\n(prefixes for VNet/Subnet)"]
-
-	%% Relationships (conceptual)
-	AVNM --> NGREG
-	AVNM --> NGHUBS
-	AVNM --> CONNREG
-	AVNM --> CONNHUBS
+	AVNM --> CONN
 	AVNM --> ROUTE
 	AVNM --> SEC
-	AVNM --> IPAM
 
-	%% Group membership
-	NGREG -->|can contain| VNETMEM
-	NGREG -->|can contain| SUBNETMEM
-	NGHUBS -->|can contain| VNETMEM
+	CONN -->|targets| NG
+	ROUTE -->|targets| NG
+	SEC -->|targets| NG
 
-	%% Config targets
-	CONNREG -->|targets| NGREG
-	ROUTE -->|targets| NGREG
-	SEC -->|targets| NGREG
-	CONNHUBS -->|targets| NGHUBS
-
-	%% IP allocation
-	IPAM -->|allocates prefixes| ALLOC
-	ALLOC -->|applied to| VNETMEM
-	ALLOC -->|applied to| SUBNETMEM
+	AVNM --> IPAMROOT
+	IPAMROOT --> IPAMCH1
+	IPAMROOT --> IPAMCH2
 
 	%% higher-contrast color theme
 	classDef manager fill:#D1FAE5,stroke:#065F46,stroke-width:2px,color:#111827;
 	classDef group fill:#DBEAFE,stroke:#1E40AF,stroke-width:2px,color:#111827;
 	classDef config fill:#EDE9FE,stroke:#5B21B6,stroke-width:2px,color:#111827;
-	classDef network fill:#FFEDD5,stroke:#9A3412,stroke-width:2px,color:#111827;
 	classDef ipam fill:#CCFBF1,stroke:#115E59,stroke-width:2px,color:#111827;
 
 	class AVNM manager;
-	class NGREG,NGHUBS group;
-	class CONNREG,CONNHUBS,ROUTE,SEC config;
-	class VNETMEM,SUBNETMEM,ALLOC network;
-	class IPAM ipam;
+	class NG group;
+	class CONN,ROUTE,SEC config;
+	class IPAMROOT,IPAMCH1,IPAMCH2 ipam;
 ```
 
 ## Repository structure
