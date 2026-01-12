@@ -114,44 +114,62 @@ If you’re new to IPAM, the key learning outcome is:
 
 ```mermaid
 flowchart TB
-  MAIN["main.bicep\n(Subscription deployment)"]
+	AVNM["AVNM\n(Network Manager)"]
 
-  AVNM["AVNM\nNetwork Manager"]
-  PER["Per-region deployment\n(one per region)"]
+	NGREG["Network Group\nNG-<location>"]
+	NGHUBS["Network Group\nNG-Hubs"]
 
-  HUBMESH["Connectivity\nHubs mesh"]
-  SEC["Security Admin\n(shared)"]
+	HUBVNET["Hub VNet\nHubVnet-<location>"]
+	SPOKEVNETS["Spoke VNets\nStatic + Dynamic"]
 
-  VNETS["VNets\nHub + Static + Dynamic"]
-  IPAM["IPAM Pools\n(root + child pools)"]
-  NG["Network Group\nNG-<location>"]
-  POLICY["Azure Policy\nDynamic membership"]
-  CONN["Connectivity\nHub-and-spoke"]
-  ROUTE["Routing\nDefault route"]
+	POLICY["Azure Policy\n(addToNetworkGroup)"]
 
-  MAIN --> AVNM
-  MAIN --> PER
-  MAIN --> HUBMESH
-  MAIN --> SEC
+	CONNREG["Connectivity Config\nHub-and-spoke"]
+	CONNHUBS["Connectivity Config\nHubs mesh"]
+	ROUTE["Routing Config\n(rules applied to group)"]
+	SEC["Security Admin Config\n(rules applied to group)"]
 
-  PER --> IPAM
-  PER --> VNETS
-  PER --> NG
-  PER --> POLICY
-  PER --> CONN
-  PER --> ROUTE
-  IPAM --> VNETS
+	IPAM["IPAM Pools\n(root + child)"]
 
-  %% simple color theme
-  classDef entry fill:#E8F0FE,stroke:#1A73E8,stroke-width:1px,color:#0B1F3A;
-  classDef avnm fill:#E6F4EA,stroke:#137333,stroke-width:1px,color:#0B1F3A;
-  classDef per fill:#FFF7E6,stroke:#B06000,stroke-width:1px,color:#0B1F3A;
-  classDef feature fill:#F3E8FF,stroke:#6B21A8,stroke-width:1px,color:#0B1F3A;
+	%% Relationships (conceptual)
+	AVNM --> NGREG
+	AVNM --> NGHUBS
+	AVNM --> CONNREG
+	AVNM --> CONNHUBS
+	AVNM --> ROUTE
+	AVNM --> SEC
+	AVNM --> IPAM
 
-  class MAIN entry;
-  class AVNM avnm;
-  class PER per;
-  class HUBMESH,SEC,VNETS,IPAM,NG,POLICY,CONN,ROUTE feature;
+	%% Group membership
+	NGREG -->|members| HUBVNET
+	NGREG -->|members| SPOKEVNETS
+	POLICY -->|adds tagged VNets| NGREG
+
+	%% Config targets
+	CONNREG -->|targets| NGREG
+	CONNREG -->|uses as hub| HUBVNET
+	ROUTE -->|targets| NGREG
+	SEC -->|targets| NGREG
+	CONNHUBS -->|targets| NGHUBS
+
+	%% IP allocation
+	IPAM -->|allocates prefixes| HUBVNET
+	IPAM -->|allocates prefixes| SPOKEVNETS
+
+	%% higher-contrast color theme
+	classDef manager fill:#D1FAE5,stroke:#065F46,stroke-width:2px,color:#111827;
+	classDef group fill:#DBEAFE,stroke:#1E40AF,stroke-width:2px,color:#111827;
+	classDef config fill:#EDE9FE,stroke:#5B21B6,stroke-width:2px,color:#111827;
+	classDef network fill:#FFEDD5,stroke:#9A3412,stroke-width:2px,color:#111827;
+	classDef ipam fill:#CCFBF1,stroke:#115E59,stroke-width:2px,color:#111827;
+	classDef policy fill:#FFE4E6,stroke:#9F1239,stroke-width:2px,color:#111827;
+
+	class AVNM manager;
+	class NGREG,NGHUBS group;
+	class CONNREG,CONNHUBS,ROUTE,SEC config;
+	class HUBVNET,SPOKEVNETS network;
+	class IPAM ipam;
+	class POLICY policy;
 ```
 
 ## Repository structure
