@@ -87,7 +87,7 @@ module avnmConnectivity 'modules/avnmConfigConnectivity.bicep' = {
     networkGroupId: avnmNgHubs.outputs.avnmNgId
     groupConnectivity: 'None'
     connectivitytopology: 'Mesh'
-    deleteExistingPeering: 'False'
+    deleteExistingPeering: 'True'
   }
 }
 

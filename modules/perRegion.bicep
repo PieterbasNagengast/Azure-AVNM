@@ -64,6 +64,7 @@ module avnmConnectivity './avnmConfigConnectivity.bicep' = {
     hubResourceId: vnets.outputs.hubVnet.id
     networkGroupId: avnmNg.outputs.avnmNgId
     avnmName: avnmName
+    deleteExistingPeering: 'True'
   }
 }
 
