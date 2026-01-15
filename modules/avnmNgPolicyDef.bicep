@@ -1,5 +1,6 @@
 targetScope = 'subscription'
 
+@description('Resource ID of the AVNM Network Group to which VNets should be added')
 param networkGroupId string
 
 // Policy Definition to add vnets with tag 'avnmManaged:true' to the specified network group
